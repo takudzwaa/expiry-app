@@ -12,7 +12,10 @@ const App = () => {
 
     useEffect(() => {
         axios.get('http://localhost:5000/items')
-            .then(response => setItems(response.data))
+            .then(response => {
+                const sortedItems = response.data.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+                setItems(sortedItems);
+            })
             .catch(error => console.error(error));
     }, []);
 
@@ -43,19 +46,7 @@ const App = () => {
             <input type="text" placeholder="Item Name" value={name} onChange={e => setName(e.target.value)} />
             <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
             <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
-            <input type="text" placeholder="Batch No" value={batchNo} onChange={e => setBatchNo(e.target.value)} />
-            <input type="number" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} />
-            <button onClick={addItem}>Add Item</button>
-            <ul>
-                {items.map(item => (
-                    <li key={item._id}>
-                        {item.name} - {new Date(item.expiryDate).toLocaleDateString()} - {item.quantity} - {item.batchNo} - ${item.price}
-                        <button onClick={() => deleteItem(item._id)}>Delete</button>
-                        <input type="number" placeholder="New Quantity" value={updateQuantity} onChange={e => setUpdateQuantity(e.target.value)} />
-                        <button onClick={() => updateItemQuantity(item._id)}>Update Quantity</button>
-                    </li>
-                ))}
-            </ul>
+            {/* ... */}
         </div>
     );
 };
