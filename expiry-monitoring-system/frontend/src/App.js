@@ -10,6 +10,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import UpdateIcon from '@mui/icons-material/Update';
 
+//Default Authorization header
+axios.defaults.headers.common['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+
 const App = () => {
     const [items, setItems] = useState([]);
     const [name, setName] = useState('');
