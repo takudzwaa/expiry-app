@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Reports from './Reports'; // Import the Reports component
+import {
+    AppBar, Toolbar, Typography, Container, Paper, TextField,
+    Button, List, ListItem, ListItemText, IconButton, Box, Grid
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
+import UpdateIcon from '@mui/icons-material/Update';
 
 const App = () => {
     const [items, setItems] = useState([]);
@@ -26,7 +33,15 @@ const App = () => {
 
     const addItem = () => {
         axios.post('http://localhost:5000/items', { name, expiryDate, quantity, batchNo, price })
-            .then(response => setItems([...items, response.data]))
+            .then(response => {
+                setItems([...items, response.data]);
+                // Reset form fields
+                setName('');
+                setExpiryDate('');
+                setQuantity('');
+                setBatchNo('');
+                setPrice('');
+            })
             .catch(error => console.error(error));
     };
 
@@ -55,45 +70,58 @@ const App = () => {
 
     return (
         <Router>
-            <div>
-                <nav>
-                    <ul>
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/reports">Reports</Link></li>
-                    </ul>
-                </nav>
-                <Switch>
-                    <Route path="/" exact>
-                        <h1>Expiry Date Monitoring System</h1>
-                        <input type="text" placeholder="Item Name" value={name} onChange={e => setName(e.target.value)} />
-                        <input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
-                        <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
-                        <input type="text" placeholder="Batch No" value={batchNo} onChange={e => setBatchNo(e.target.value)} />
-                        <input type="number" placeholder="Price" value={price} onChange={e => setPrice(e.target.value)} />
-                        <button onClick={addItem}>Add Item</button>
+            <AppBar position="static">
+                <Toolbar>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                        Expiry Date Monitoring System
+                    </Typography>
+                    <Button color="inherit" component={Link} to="/">Home</Button>
+                    <Button color="inherit" component={Link} to="/reports">Reports</Button>
+                </Toolbar>
+            </AppBar>
+            <Container sx={{ mt: 4 }}>
+                <Routes>
+                    <Route path="/" element={
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h4" gutterBottom>Manage Items</Typography>
+                            <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <TextField label="Item Name" value={name} onChange={e => setName(e.target.value)} />
+                                <TextField type="date" label="Expiry Date" InputLabelProps={{ shrink: true }} value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
+                                <TextField type="number" label="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
+                                <TextField label="Batch No" value={batchNo} onChange={e => setBatchNo(e.target.value)} />
+                                <TextField type="number" label="Price" value={price} onChange={e => setPrice(e.target.value)} />
+                                <Button variant="contained" startIcon={<AddIcon />} onClick={addItem}>Add Item</Button>
+                            </Box>
 
-                        <h2>Filter Items</h2>
-                        <input type="text" placeholder="Filter by Name" value={filterName} onChange={e => setFilterName(e.target.value)} />
-                        <input type="number" placeholder="Filter by Quantity" value={filterQuantity} onChange={e => setFilterQuantity(e.target.value)} />
-                        <input type="number" placeholder="Filter by Price" value={filterPrice} onChange={e => setFilterPrice(e.target.value)} />
+                            <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Filter Items</Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                <TextField label="Filter by Name" value={filterName} onChange={e => setFilterName(e.target.value)} />
+                                <TextField type="number" label="Filter by Quantity" value={filterQuantity} onChange={e => setFilterQuantity(e.target.value)} />
+                                <TextField type="number" label="Filter by Price" value={filterPrice} onChange={e => setFilterPrice(e.target.value)} />
+                            </Box>
 
-                        <h2>Items</h2>
-                        <ul>
-                            {filterItems().map(item => (
-                                <li key={item._id}>
-                                    {item.name} - {item.quantity} - ${item.price}
-                                    <button onClick={() => deleteItem(item._id)}>Delete</button>
-                                    <input type="number" placeholder="Update Quantity" value={updateQuantity} onChange={e => setUpdateQuantity(e.target.value)} />
-                                    <button onClick={() => updateItemQuantity(item._id)}>Update Quantity</button>
-                                </li>
-                            ))}
-                        </ul>
-                    </Route>
-                    <Route path="/reports">
-                        <Reports items={items} />
-                    </Route>
-                </Switch>
-            </div>
+                            <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Items</Typography>
+                            <List>
+                                {filterItems().map(item => (
+                                    <ListItem key={item._id} divider>
+                                        <ListItemText
+                                            primary={`${item.name} - ${item.quantity} - $${item.price} - Expiry Date: ${item.expiryDate}`}
+                                        />
+                                        <TextField type="number" placeholder="Update Quantity" value={updateQuantity} onChange={e => setUpdateQuantity(e.target.value)} sx={{ width: '100px' }} />
+                                        <IconButton color="primary" onClick={() => updateItemQuantity(item._id)}>
+                                            <UpdateIcon />
+                                        </IconButton>
+                                        <IconButton color="secondary" onClick={() => deleteItem(item._id)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </ListItem>
+                                ))}
+                            </List>
+                        </Paper>
+                    } />
+                    <Route path="/reports" element={<Reports items={items} />} />
+                </Routes>
+            </Container>
         </Router>
     );
 };
