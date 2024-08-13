@@ -59,4 +59,4 @@ app.post('/items', async (req, res) => {
     res.json({ message: 'Item deleted' });
   });
 
-  app.listen(5000, () => console.log('Server running on port 5000'));
+  app.listen(5500, () => console.log('Server running on port 5000'));
