@@ -48,6 +48,16 @@ app.post(`${apiBase}`, async (req, res) => {
   }
 });
 
+app.post(`${apiBase}/bulk`, async (req, res) => {
+  const items = req.body;
+  try {
+    const newItems = await Item.insertMany(items);
+    res.json(newItems);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save items' });
+  }
+});
+
 app.put(`${apiBase}/:id`, async (req, res) => {
   const { name, description, quantity, expiryDate, price } = req.body;
   const updatedItem = await Item.findByIdAndUpdate(
