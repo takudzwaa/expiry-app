@@ -19,11 +19,15 @@ mongoose.connect(mongoUri)
   .catch(err => console.log(err));
 
   const itemSchema = new mongoose.Schema({
-    name: String,
-    expiryDate: Date,
-    quantity: Number,
     batchNo: { type: String, unique: true },
+    name: String,
+    quantity: Number,
+    expiryDate: Date,
     price: Number,
+    category: String, 
+    receivedOn: Date,
+    
+
   });
 
 const Item = mongoose.model('Item', itemSchema);
@@ -34,8 +38,8 @@ app.get('/items', async (req, res) => {
 });
 
 app.post('/items', async (req, res) => {
-  const { name, expiryDate, quantity, batchNo, price } = req.body;
-  const newItem = new Item({ name, expiryDate, quantity, batchNo, price });
+  const { batchNo, name, quantity, expiryDate, price, category, receivedOn } = req.body;
+  const newItem = new Item({ batchNo, name, quantity, expiryDate, price, category, receivedOn });
   try {
     await newItem.save();
     res.json(newItem);
@@ -45,10 +49,10 @@ app.post('/items', async (req, res) => {
 });
 
   app.put('/items/:id', async (req, res) => {
-    const { name, expiryDate, quantity, batchNo, price } = req.body;
+    const { batchNo, name, quantity, expiryDate, price, category, receivedOn } = req.body;
     const updatedItem = await Item.findByIdAndUpdate(
       req.params.id,
-      { name, expiryDate, quantity, batchNo, price },
+      { batchNo, name, quantity, expiryDate, price, category, receivedOn },
       { new: true }
     );
     res.json(updatedItem);
