@@ -1,73 +1,83 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
-import Reports from './Reports'; // Import the Reports component
-import {
-    AppBar, Toolbar, Typography, Container, Paper, TextField,
-    Button, List, ListItem, ListItemText, IconButton, Box, Grid
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { AppBar, Toolbar, Typography, Button, Container, Paper, Box, TextField, List, ListItem, ListItemText, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import UpdateIcon from '@mui/icons-material/Update';
-
-//Default Authorization header
-axios.defaults.headers.common['Authorization'] = `Bearer ${process.env.GITHUB_TOKEN}`;
+import DeleteIcon from '@mui/icons-material/Delete';
+import axios from 'axios';
+import Reports from './Reports';
 
 const App = () => {
-    const [items, setItems] = useState([]);
     const [name, setName] = useState('');
     const [expiryDate, setExpiryDate] = useState('');
     const [quantity, setQuantity] = useState('');
     const [batchNo, setBatchNo] = useState('');
     const [price, setPrice] = useState('');
-    const [updateQuantity, setUpdateQuantity] = useState('');
+    const [category, setCategory] = useState('');
+    const [receivedOn, setReceivedOn] = useState('');
+    const [items, setItems] = useState([]);
     const [filterName, setFilterName] = useState('');
     const [filterQuantity, setFilterQuantity] = useState('');
     const [filterPrice, setFilterPrice] = useState('');
+    const [updateQuantity, setUpdateQuantity] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:5000/items')
-            .then(response => {
-                const sortedItems = response.data.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-                setItems(sortedItems);
-            })
-            .catch(error => console.error(error));
+        fetchItems();
     }, []);
 
-    const addItem = () => {
-        axios.post('http://localhost:5000/items', { name, expiryDate, quantity, batchNo, price })
-            .then(response => {
-                setItems([...items, response.data]);
-                // Reset form fields
-                setName('');
-                setExpiryDate('');
-                setQuantity('');
-                setBatchNo('');
-                setPrice('');
-            })
-            .catch(error => console.error(error));
+    const fetchItems = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/items');
+            setItems(response.data);
+        } catch (error) {
+            console.error('Error fetching items:', error);
+        }
     };
 
-    const deleteItem = (id) => {
-        axios.delete(`http://localhost:5000/items/${id}`)
-            .then(() => setItems(items.filter(item => item._id !== id)))
-            .catch(error => console.error(error));
+    const addItem = async () => {
+        try {
+            const newItem = { batchNo, name, quantity, expiryDate, price, category, receivedOn };
+            const response = await axios.post('http://localhost:5000/items', newItem);
+            setItems([...items, response.data]);
+            // Clear form fields
+            setBatchNo('');
+            setName('');
+            setQuantity('');
+            setExpiryDate('');
+            setPrice('');
+            setCategory('');
+            setReceivedOn('');
+        } catch (error) {
+            console.error('Error adding item:', error);
+        }
     };
 
-    const updateItemQuantity = (id) => {
-        axios.put(`http://localhost:5000/items/${id}`, { quantity: updateQuantity })
-            .then(response => {
-                setItems(items.map(item => item._id === id ? response.data : item));
-                setUpdateQuantity('');
-            })
-            .catch(error => console.error(error));
+    const updateItemQuantity = async (id) => {
+        try {
+            const updatedItem = items.find(item => item._id === id);
+            updatedItem.quantity = updateQuantity;
+            const response = await axios.put(`http://localhost:5000/items/${id}`, updatedItem);
+            setItems(items.map(item => (item._id === id ? response.data : item)));
+            setUpdateQuantity('');
+        } catch (error) {
+            console.error('Error updating item quantity:', error);
+        }
+    };
+
+    const deleteItem = async (id) => {
+        try {
+            await axios.delete(`http://localhost:5000/items/${id}`);
+            setItems(items.filter(item => item._id !== id));
+        } catch (error) {
+            console.error('Error deleting item:', error);
+        }
     };
 
     const filterItems = () => {
         return items.filter(item => 
-            (filterName ? item.name.includes(filterName) : true) &&
-            (filterQuantity ? item.quantity === parseInt(filterQuantity) : true) &&
-            (filterPrice ? item.price === parseFloat(filterPrice) : true)
+            item.name.includes(filterName) &&
+            (filterQuantity === '' || item.quantity === Number(filterQuantity)) &&
+            (filterPrice === '' || item.price === Number(filterPrice))
         );
     };
 
@@ -88,11 +98,13 @@ const App = () => {
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h4" gutterBottom>Manage Items</Typography>
                             <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                <TextField label="Item Name" value={name} onChange={e => setName(e.target.value)} />
-                                <TextField type="date" label="Expiry Date" InputLabelProps={{ shrink: true }} value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
-                                <TextField type="number" label="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
                                 <TextField label="Batch No" value={batchNo} onChange={e => setBatchNo(e.target.value)} />
+                                <TextField label="Item Name" value={name} onChange={e => setName(e.target.value)} />
+                                <TextField type="number" label="Quantity" value={quantity} onChange={e => setQuantity(e.target.value)} />
+                                <TextField type="date" label="Expiry Date" InputLabelProps={{ shrink: true }} value={expiryDate} onChange={e => setExpiryDate(e.target.value)} />
                                 <TextField type="number" label="Price" value={price} onChange={e => setPrice(e.target.value)} />
+                                <TextField label="Category" value={category} onChange={e => setCategory(e.target.value)} />
+                                <TextField type="date" label="Received On" InputLabelProps={{ shrink: true }} value={receivedOn} onChange={e => setReceivedOn(e.target.value)} />
                                 <Button variant="contained" startIcon={<AddIcon />} onClick={addItem}>Add Item</Button>
                             </Box>
 

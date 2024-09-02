@@ -7,7 +7,12 @@ const Reports = ({ items }) => {
             <ul>
                 {items.map(item => (
                     <li key={item._id}>
-                        {item.name} - {item.quantity} - ${item.price} - Expiry Date: {item.expiryDate}
+                        <strong>Name:</strong> {item.name} <br />
+                        <strong>Quantity:</strong> {item.quantity} <br />
+                        <strong>Price:</strong> ${item.price} <br />
+                        <strong>Expiry Date:</strong> {item.expiryDate} <br />
+                        <strong>Category:</strong> {item.category} <br />
+                        <strong>Received On:</strong> {item.receivedOn} <br />
                     </li>
                 ))}
             </ul>
